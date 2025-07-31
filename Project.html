@@ -379,6 +379,7 @@
                   >
                     Add Skill
                   </button>
+                  <button id="delete-skill-tree-btn" class="bg-red-600 text-white font-bold py-2 px-4 rounded-lg">Delete Tree</button>
                 </div>
               </div>
             </div>
@@ -1943,6 +1944,19 @@
         });
         timer.plusBtn.addEventListener("click", () => adjustTimer(60));
         timer.minusBtn.addEventListener("click", () => adjustTimer(-60));
+        const deleteSkillTreeBtn = $('#delete-skill-tree-btn');
+
+        deleteSkillTreeBtn.addEventListener('click', () => {
+            showConfirmModal(
+                'Delete Skill Tree?',
+                'This will remove all skills and sub-skills. This action cannot be undone.',
+                () => {
+                    state.skillGraphData = { nodes: [], links: [] };
+                    saveData();
+                    renderSkillGraph();
+                }
+            );
+        });
       });
     </script>
   </body>
