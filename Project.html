@@ -1386,23 +1386,15 @@
             selectedNode = null;
           }
 
-          addSkillButton.addEventListener("click", addNewSkill);
-          skillInput.addEventListener(
-            "keypress",
-            (e) => e.key === "Enter" && addNewSkill()
-          );
-
-          addSubSkillButton.addEventListener("click", addNewSubSkill);
-          subSkillInput.addEventListener(
-            "keypress",
-            (e) => e.key === "Enter" && addNewSubSkill()
-          );
-
-          cancelSubSkillButton.addEventListener("click", closeModal);
-          modal.addEventListener(
-            "click",
-            (e) => e.target === modal && closeModal()
-          );
+         // --- UI Bindings ---
+            addSkillButton.onclick = addNewSkill;
+            skillInput.onkeypress = e => { if (e.key === 'Enter') addNewSkill(); };
+            
+            addSubSkillButton.onclick = addNewSubSkill;
+            subSkillInput.onkeypress = e => { if (e.key === 'Enter') addNewSubSkill(); };
+            
+            cancelSubSkillButton.onclick = closeModal;
+            modal.onclick = e => { if (e.target === modal) closeModal(); };
 
           function drag(simulation) {
             function dragstarted(event, d) {
