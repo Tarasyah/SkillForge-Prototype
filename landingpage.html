@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Quest - Turn Your Goals into Epic Quests</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- D3.js for Interactive Graph -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* A dark, adventurous theme */
+            color: #e2e8f0;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+        .hero-bg {
+            background-image: linear-gradient(rgba(26, 32, 44, 0.8), rgba(26, 32, 44, 1)), url('https://placehold.co/1920x1080/2d3748/1a202c?text=Epic+Landscape');
+            background-size: cover;
+            background-position: center;
+        }
+        .cta-button {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px rgba(245, 158, 11, 0.2);
+        }
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .progress-bar-bg {
+            background-color: #4a5568;
+            cursor: pointer;
+        }
+        .progress-bar-fill {
+            background-color: #f59e0b;
+            transition: width 0.2s ease;
+            pointer-events: none;
+        }
+        /* Styles for the D3 graph */
+        .links line {
+            stroke: #999;
+            stroke-opacity: 0.6;
+        }
+        .nodes circle {
+            stroke: #fff;
+            stroke-width: 1.5px;
+        }
+        .nodes text {
+            font-family: 'Inter', sans-serif;
+            fill: #e2e8f0;
+            font-size: 11px;
+            pointer-events: none;
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+        .nodes g:hover {
+            cursor: pointer;
+        }
+        /* Sub-skill modal */
+        #sub-skill-modal {
+            transition: opacity 0.3s ease;
+        }
+        /* Fireworks particles */
+        .particle {
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header -->
+    <header class="absolute top-0 left-0 right-0 z-10 p-6">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold font-cinzel text-white">Project Quest</h1>
+        </div>
+    </header>
+
+    <!-- 1. Hero Section -->
+    <section id="home" class="hero-bg min-h-screen flex items-center justify-center text-center p-6">
+        <div class="max-w-4xl">
+            <h1 class="text-5xl md:text-7xl font-bold font-cinzel text-white leading-tight mb-4">Turn Your Goals into Epic Quests</h1>
+            <p class="text-xl md:text-2xl text-amber-300 font-medium mb-8">Conquer Your To-Do List and Master New Skills, One Adventure at a Time.</p>
+            <p class="text-lg text-slate-300 max-w-2xl mx-auto mb-10">Project Quest is the ultimate gamified learning companion for all learners. We transform tedious tasks into engaging and rewarding journeys, helping you stay motivated and achieve mastery.</p>
+            <a href="/Project.html" class="bg-amber-500 text-gray-900 font-bold py-4 px-8 rounded-lg text-lg cta-button">Start Your First Quest Today!</a>
+        </div>
+    </section>
+
+    <!-- 2. The Challenge Section -->
+    <section id="challenge" class="py-20 bg-gray-800">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold font-cinzel mb-4">Are You Trapped in a Learning Labyrinth?</h2>
+            <p class="text-slate-400 max-w-3xl mx-auto mb-16">The path to mastery is fraught with peril. Many aspiring heroes face these common foes.</p>
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Pain Point 1 -->
+                <div class="bg-gray-700 p-8 rounded-lg feature-card">
+                    <div class="text-amber-400 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold font-cinzel mb-3">The Fading Flame of Motivation</h3>
+                    <p class="text-slate-300">Initial excitement for a new project often fades, making consistent commitment a daily battle. Without momentum, the journey stalls.</p>
+                </div>
+                <!-- Pain Point 2 -->
+                <div class="bg-gray-700 p-8 rounded-lg feature-card">
+                    <div class="text-amber-400 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold font-cinzel mb-3">Ocean of Knowledge</h3>
+                    <p class="text-slate-300">Feeling overwhelmed by the sheer volume of things to learn? Juggling multiple subjects at once leads to knowing a little of everything but mastering nothing.</p>
+                </div>
+                <!-- Pain Point 3 -->
+                <div class="bg-gray-700 p-8 rounded-lg feature-card">
+                     <div class="text-amber-400 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2V7a2 2 0 012-2h6.586a1 1 0 01.707.293l2.414 2.414a1 1 0 01.293.707V8z" /></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold font-cinzel mb-3">Theory to Triumph Gap</h3>
+                    <p class="text-slate-300">Lessons make sense, but applying that knowledge to a real project feels like a chasm. Planning and executing a project from scratch can be overwhelming.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Skill Graph Section -->
+    <section id="interactive-graph" class="py-20">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold font-cinzel text-amber-400 mb-4">Map Your Universe of Skills</h2>
+            <p class="text-slate-300 max-w-3xl mx-auto mb-8">Your skills are interconnected. Add new skills, then click on them to add sub-skills. Drag nodes to organize your universe!</p>
+            <div class="bg-gray-900 rounded-lg shadow-xl p-4 md:p-8 max-w-4xl mx-auto">
+                <div id="skill-graph-container" class="w-full h-96 md:h-[500px] relative"></div>
+                <div class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <input type="text" id="skill-input" class="bg-gray-800 border border-gray-700 text-white rounded-lg px-4 py-2 w-full sm:w-64 focus:ring-amber-500 focus:border-amber-500" placeholder="Enter a new skill...">
+                    <button id="add-skill-btn" class="bg-amber-500 text-gray-900 font-bold py-2 px-6 rounded-lg cta-button w-full sm:w-auto">Add Skill</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. How Project Quest Empowers You -->
+    <section id="features" class="py-20 bg-gray-900">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold font-cinzel mb-4">How Project Quest Empowers Your Mastery</h2>
+                <p class="text-slate-400 max-w-3xl mx-auto">We provide the tools you need to conquer any learning challenge.</p>
+            </div>
+            
+            <!-- Feature 1: Forge Quests -->
+            <div class="flex flex-col md:flex-row items-center mb-20">
+                <div class="md:w-1/2 p-4 text-center md:text-left">
+                    <h3 class="text-3xl font-bold font-cinzel text-amber-400 mb-4">Forge Your Epic Quests</h3>
+                    <p class="text-slate-300 mb-4">Define any project as a "Quest" with a clear objective, like "Learn Spanish Fluently." Specify the core topics to focus your energy and master one thing at a time.</p>
+                    <p class="text-slate-400 italic">This structured focus eliminates the "what's next?" paralysis and prevents the overwhelm of learning too many things at once.</p>
+                </div>
+                <div class="md:w-1/2 p-4">
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h4 class="font-bold text-white mb-2">New Quest:</h4>
+                        <p class="text-slate-300 font-cinzel text-lg">Learn Spanish Fluently</p>
+                        <h4 class="font-bold text-white mt-4 mb-2">Core Topics:</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="bg-red-500 text-white text-sm font-bold px-2 py-1 rounded">Vocabulary</span>
+                            <span class="bg-green-500 text-white text-sm font-bold px-2 py-1 rounded">Grammar</span>
+                            <span class="bg-blue-500 text-white text-sm font-bold px-2 py-1 rounded">Conversation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 2: Break Down Battles -->
+            <div class="flex flex-col md:flex-row-reverse items-center mb-20">
+                <div class="md:w-1/2 p-4 text-center md:text-left">
+                    <h3 class="text-3xl font-bold font-cinzel text-amber-400 mb-4">Break Down Your Battles</h3>
+                    <p class="text-slate-300 mb-4">Every great quest is made of smaller steps. Break down your project into individual, actionable tasks with checkboxes. This makes complex goals feel less intimidating and more achievable.</p>
+                    <p class="text-slate-400 italic">Ticking off a task provides a small win, building the momentum you need to see the quest through to the end.</p>
+                </div>
+                <div class="md:w-1/2 p-4">
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                        <h4 class="font-bold text-white mb-4">Tasks for Spanish Quest:</h4>
+                        <ul id="task-list" class="space-y-3">
+                            <li class="flex items-center">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-amber-500 bg-gray-700 border-gray-600 rounded focus:ring-amber-500 cursor-pointer"> 
+                                <span class="ml-3 text-slate-200">Memorize 20 common verbs</span>
+                            </li>
+                            <li class="flex items-center">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-amber-500 bg-gray-700 border-gray-600 rounded focus:ring-amber-500 cursor-pointer"> 
+                                <span class="ml-3 text-slate-200">Practice present tense conjugation</span>
+                            </li>
+                            <li class="flex items-center">
+                                <input type="checkbox" class="form-checkbox h-5 w-5 text-amber-500 bg-gray-700 border-gray-600 rounded focus:ring-amber-500 cursor-pointer"> 
+                                <span class="ml-3 text-slate-200">Have a 5-minute conversation</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature 3: Level Up & Track Progress -->
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 p-4 text-center md:text-left">
+                    <h3 class="text-3xl font-bold font-cinzel text-amber-400 mb-4">Level Up & Track Your Ascent</h3>
+                    <p class="text-slate-300 mb-4">Instantly earn Experience Points (XP) for each completed task. Watch your XP accumulate and advance through levels, from "Apprentice Learner" to "Master Scholar".</p>
+                    <p class="text-slate-400 italic">Beautifully designed progress bars give you a tangible sense of progress, reducing uncertainty and making the journey feel rewarding.</p>
+                </div>
+                <div class="md:w-1/2 p-4">
+                    <div class="bg-gray-800 p-6 rounded-lg shadow-lg space-y-4">
+                        <div class="flex justify-between items-center text-white">
+                            <span class="font-bold">Level 5: Apprentice Learner</span>
+                            <span id="level-xp-text" class="font-bold text-amber-400">Total XP: 450</span>
+                        </div>
+                        <div id="level-progress-bar" class="w-full progress-bar-bg rounded-full h-4">
+                            <div id="level-progress-fill" class="progress-bar-fill h-4 rounded-full" style="width: 50%;"></div>
+                        </div>
+                        <p id="level-next-text" class="text-right text-sm text-slate-400">50/100 XP to next level</p>
+                        <hr class="border-gray-700 my-4">
+                        <h4 class="font-bold text-white">Quest Progress:</h4>
+                        <div id="quest-progress-bar" class="w-full progress-bar-bg rounded-full h-4 !cursor-default">
+                            <div id="quest-progress-fill" class="progress-bar-fill h-4 rounded-full !transition-width !duration-500" style="width: 0%;"></div>
+                        </div>
+                        <p id="quest-progress-text" class="text-right text-sm text-slate-400">0 of 3 tasks complete</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. Final Call to Action -->
+    <section id="start" class="py-20 bg-amber-500 text-gray-900">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-4xl font-bold font-cinzel mb-4">Embark on Your Learning Quest</h2>
+            <p class="max-w-2xl mx-auto mb-8 text-lg">Stop dreaming and start doing. Your next great adventure in learning awaits. Sign up for free and begin your journey to mastery today.</p>
+            <a href="/Project.html" class="bg-gray-900 text-white font-bold py-4 px-8 rounded-lg text-lg cta-button hover:bg-gray-800">Get Project Quest Now!</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 py-8">
+        <div class="container mx-auto px-6 text-center text-slate-500">
+            <p>&copy; 2025 Project Quest. All Rights Reserved. Forge Your Path.</p>
+        </div>
+    </footer>
+
+    <!-- Sub-skill Modal -->
+    <div id="sub-skill-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm">
+            <h3 class="text-xl font-bold text-white mb-4">Add Sub-Skill for <span id="parent-skill-name" class="text-amber-400"></span></h3>
+            <input type="text" id="sub-skill-input" class="bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-2 w-full focus:ring-amber-500 focus:border-amber-500" placeholder="Enter sub-skill name...">
+            <div class="mt-6 flex justify-end gap-4">
+                <button id="cancel-sub-skill-btn" class="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-500 transition-colors">Cancel</button>
+                <button id="add-sub-skill-btn" class="bg-amber-500 text-gray-900 font-bold py-2 px-4 rounded-lg cta-button">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- DOM Elements ---
+            const container = document.getElementById('skill-graph-container');
+            const skillInput = document.getElementById('skill-input');
+            const addSkillButton = document.getElementById('add-skill-btn');
+            const modal = document.getElementById('sub-skill-modal');
+            const subSkillInput = document.getElementById('sub-skill-input');
+            const addSubSkillButton = document.getElementById('add-sub-skill-btn');
+            const cancelSubSkillButton = document.getElementById('cancel-sub-skill-btn');
+            const parentSkillNameSpan = document.getElementById('parent-skill-name');
+
+            if (!container) return;
+
+            // --- Helper Function ---
+            function getRandomColor() {
+                const letters = '0123456789ABCDEF';
+                let color = '#';
+                for (let i = 0; i < 6; i++) {
+                    color += letters[Math.floor(Math.random() * 16)];
+                }
+                return color;
+            }
+
+            // --- D3 Setup ---
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            const svg = d3.select("#skill-graph-container").append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", [-width / 2, -height / 2, width, height]);
+
+            // --- Data ---
+            let nodes = [
+                { id: "You", group: 1, radius: 25 },
+                { id: "Public Speaking", group: 2, radius: 20, color: getRandomColor() },
+                { id: "Data Analysis", group: 2, radius: 20, color: getRandomColor() },
+                { id: "Creative Writing", group: 2, radius: 20, color: getRandomColor() }
+            ];
+            let links = [
+                { source: "You", target: "Public Speaking" },
+                { source: "You", target: "Data Analysis" },
+                { source: "You", target: "Creative Writing" }
+            ];
+            let selectedNode = null;
+
+            // --- D3 Simulation ---
+            const simulation = d3.forceSimulation()
+                .velocityDecay(0.8) // Increased friction for much slower movement
+                .force("link", d3.forceLink().id(d => d.id).distance(d => d.target.group === 3 ? 60 : 120))
+                .force("charge", d3.forceManyBody().strength(-250))
+                .force("center", d3.forceCenter(0, 0));
+
+            const linkGroup = svg.append("g").attr("class", "links");
+            const nodeGroup = svg.append("g").attr("class", "nodes");
+            const particleGroup = svg.append("g").attr("class", "particles");
+
+            // --- Fireworks Effect ---
+            function createFireworks(x, y) {
+                const numParticles = 50; // Increased particle count
+                d3.range(numParticles).forEach(() => {
+                    const angle = Math.random() * 2 * Math.PI;
+                    const distance = Math.random() * 120 + 40; // Increased travel distance
+                    const targetX = x + Math.cos(angle) * distance;
+                    const targetY = y + Math.sin(angle) * distance;
+
+                    particleGroup.append("circle")
+                        .attr("class", "particle")
+                        .attr("cx", x)
+                        .attr("cy", y)
+                        .attr("r", 3) // Increased particle size
+                        .style("fill", getRandomColor())
+                        .transition()
+                        .duration(1500) // Increased duration
+                        .ease(d3.easeQuadOut)
+                        .attr("cx", targetX)
+                        .attr("cy", targetY)
+                        .style("opacity", 0)
+                        .remove();
+                });
+            }
+            
+            // --- Main Update Function ---
+            function updateGraph() {
+                // NODES
+                const node = nodeGroup.selectAll("g").data(nodes, d => d.id);
+                node.exit().remove();
+                const nodeEnter = node.enter().append("g")
+                    .call(drag(simulation))
+                    .on('click', handleNodeClick);
+
+                nodeEnter.append("circle")
+                    .attr("r", d => d.radius)
+                    .attr("fill", d => {
+                        if (d.group === 1) return "#f59e0b"; // Center node
+                        return d.color || "#4a5568"; // Use the node's random color
+                    });
+
+                nodeEnter.append("text")
+                    .text(d => d.id)
+                    .attr("y", 0)
+                    .attr("dy", d => d.radius + 12);
+
+                // LINKS
+                const link = linkGroup.selectAll("line").data(links, d => `${d.source.id}-${d.target.id}`);
+                link.exit().remove();
+                link.enter().insert("line", "g");
+
+                // RESTART SIMULATION
+                simulation.nodes(nodes);
+                simulation.force("link").links(links);
+                simulation.alpha(1).restart();
+            }
+
+            simulation.on("tick", () => {
+                // Update link and node positions
+                linkGroup.selectAll("line")
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+                nodeGroup.selectAll("g")
+                    .attr("transform", d => `translate(${d.x},${d.y})`);
+
+                // --- Collision Detection ---
+                const q = d3.quadtree(nodes, d => d.x, d => d.y);
+                for (const node of nodes) {
+                    q.visit((quad, x1, y1, x2, y2) => {
+                        if (!quad.length) {
+                            do {
+                                if (quad.data && quad.data !== node) {
+                                    const dx = node.x - quad.data.x;
+                                    const dy = node.y - quad.data.y;
+                                    const distance = Math.sqrt(dx * dx + dy * dy);
+                                    const minDistance = node.radius + quad.data.radius;
+                                    
+                                    if (distance < minDistance) {
+                                        // Collision detected!
+                                        const now = Date.now();
+                                        const cooldown = 500; // 500ms cooldown
+                                        if ((!node.lastCollisionTime || now - node.lastCollisionTime > cooldown) &&
+                                            (!quad.data.lastCollisionTime || now - quad.data.lastCollisionTime > cooldown)) {
+                                            
+                                            node.lastCollisionTime = now;
+                                            quad.data.lastCollisionTime = now;
+
+                                            // Create fireworks at the midpoint of the collision
+                                            createFireworks((node.x + quad.data.x) / 2, (node.y + quad.data.y) / 2);
+                                        }
+                                    }
+                                }
+                            } while (quad = quad.next);
+                        }
+                        // This return statement is for pruning the quadtree search.
+                        return x1 > node.x + node.radius || x2 < node.x - node.radius || y1 > node.y + node.radius || y2 < node.y - node.radius;
+                    });
+                }
+            });
+
+            // --- Event Handlers ---
+            function handleNodeClick(event, d) {
+                if (d.group !== 1) { // Can't add sub-skills to "You"
+                    selectedNode = d;
+                    parentSkillNameSpan.textContent = d.id;
+                    modal.classList.remove('hidden');
+                    subSkillInput.focus();
+                }
+            }
+
+            function addNewSkill() {
+                const skillName = skillInput.value.trim();
+                if (skillName && !nodes.find(n => n.id === skillName)) {
+                    const newNode = { id: skillName, group: 2, radius: 20, color: getRandomColor() };
+                    nodes.push(newNode);
+                    links.push({ source: "You", target: skillName });
+                    updateGraph();
+                    setTimeout(() => createFireworks(newNode.x || 0, newNode.y || 0), 200);
+                    skillInput.value = '';
+                }
+            }
+
+            function addNewSubSkill() {
+                const subSkillName = subSkillInput.value.trim();
+                if (subSkillName && selectedNode && !nodes.find(n => n.id === subSkillName)) {
+                    const newNode = { id: subSkillName, group: 3, radius: 15, color: getRandomColor() };
+                    nodes.push(newNode);
+                    links.push({ source: selectedNode.id, target: subSkillName });
+                    updateGraph();
+                    setTimeout(() => createFireworks(newNode.x || selectedNode.x, newNode.y || selectedNode.y), 200);
+                    closeModal();
+                }
+            }
+
+            function closeModal() {
+                modal.classList.add('hidden');
+                subSkillInput.value = '';
+                selectedNode = null;
+            }
+
+            // --- UI Bindings ---
+            addSkillButton.addEventListener('click', addNewSkill);
+            skillInput.addEventListener('keypress', e => e.key === 'Enter' && addNewSkill());
+            
+            addSubSkillButton.addEventListener('click', addNewSubSkill);
+            subSkillInput.addEventListener('keypress', e => e.key === 'Enter' && addNewSubSkill());
+            
+            cancelSubSkillButton.addEventListener('click', closeModal);
+            modal.addEventListener('click', e => e.target === modal && closeModal()); // Close on backdrop click
+
+            // --- Drag Functionality ---
+            function drag(simulation) {
+                function dragstarted(event, d) {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x; d.fy = d.y;
+                }
+                function dragged(event, d) {
+                    d.fx = event.x; d.fy = event.y;
+                }
+                function dragended(event, d) {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null; d.fy = null;
+                }
+                return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
+            }
+            
+            // --- Initial Render & Responsive ---
+            updateGraph();
+            window.addEventListener('resize', () => {
+                const newWidth = container.clientWidth;
+                const newHeight = container.clientHeight;
+                svg.attr("width", newWidth).attr("height", newHeight)
+                   .attr("viewBox", [-newWidth / 2, -newHeight / 2, newWidth, newHeight]);
+            });
+
+            // --- Interactive UI Elements ---
+            // Task List
+            const taskList = document.getElementById('task-list');
+            const questProgressFill = document.getElementById('quest-progress-fill');
+            const questProgressText = document.getElementById('quest-progress-text');
+
+            function updateQuestProgress() {
+                const checkboxes = taskList.querySelectorAll('input[type="checkbox"]');
+                const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+                const totalTasks = checkboxes.length;
+                const percentage = totalTasks > 0 ? (checkedCount / totalTasks) * 100 : 0;
+                
+                questProgressFill.style.width = `${percentage}%`;
+                questProgressText.textContent = `${checkedCount} of ${totalTasks} tasks complete`;
+            }
+
+            taskList.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox') {
+                    e.target.nextElementSibling.classList.toggle('line-through', e.target.checked);
+                    e.target.nextElementSibling.classList.toggle('text-slate-400', e.target.checked);
+                    updateQuestProgress();
+                }
+            });
+
+            // Level Progress Slider
+            const levelProgressBar = document.getElementById('level-progress-bar');
+            const levelProgressFill = document.getElementById('level-progress-fill');
+            const levelNextText = document.getElementById('level-next-text');
+
+            function setupSlider(bar, fill, text) {
+                let isDragging = false;
+
+                function updateProgress(event) {
+                    const rect = bar.getBoundingClientRect();
+                    const clientX = event.clientX || event.touches[0].clientX;
+                    let x = clientX - rect.left;
+                    let percentage = (x / rect.width) * 100;
+                    percentage = Math.max(0, Math.min(100, percentage)); // Clamp between 0 and 100
+
+                    fill.style.width = `${percentage}%`;
+                    text.textContent = `${Math.round(percentage)}/100 XP to next level`;
+                }
+
+                function onMouseDown(e) {
+                    isDragging = true;
+                    updateProgress(e);
+                    window.addEventListener('mousemove', onMouseMove);
+                    window.addEventListener('mouseup', onMouseUp);
+                    window.addEventListener('touchmove', onMouseMove);
+                    window.addEventListener('touchend', onMouseUp);
+                }
+
+                function onMouseMove(e) {
+                    if (isDragging) {
+                        updateProgress(e);
+                    }
+                }
+
+                function onMouseUp() {
+                    isDragging = false;
+                    window.removeEventListener('mousemove', onMouseMove);
+                    window.removeEventListener('mouseup', onMouseUp);
+                    window.removeEventListener('touchmove', onMouseMove);
+                    window.removeEventListener('touchend', onMouseUp);
+                }
+
+                bar.addEventListener('mousedown', onMouseDown);
+                bar.addEventListener('touchstart', onMouseDown);
+            }
+
+            setupSlider(levelProgressBar, levelProgressFill, levelNextText);
+            
+            // Initial call to set quest progress
+            updateQuestProgress();
+        });
+    </script>
+
+</body>
+</html>

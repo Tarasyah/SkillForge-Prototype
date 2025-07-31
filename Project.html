@@ -1,0 +1,1949 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Quest</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style id="custom-theme-styles">
+      /* Custom CSS variables will be injected here by JavaScript */
+    </style>
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: var(--color-bg, #f8fafc);
+        color: var(--color-text, #bec3cb);
+      }
+      .dark body {
+        background-color: var(--color-bg-dark, #0f172a);
+        color: var(--color-text-dark, #e2e8f0);
+      }
+      .transition-all-smooth {
+        transition: all 0.3s ease-in-out;
+      }
+      .progress-bar-fill {
+        background-color: var(--color-primary-600, #4f46e5);
+        transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      }
+      .dark .progress-bar-fill {
+        background-color: var(--color-primary-500, #6366f1);
+      }
+      .task-checkbox:checked + label {
+        text-decoration: line-through;
+        color: #6b7280;
+      }
+      .dark .task-checkbox:checked + label {
+        color: #9ca3af;
+      }
+      .todo-checkbox:checked + span {
+        text-decoration: line-through;
+        color: #6b7280;
+      }
+      .dark .todo-checkbox:checked + span {
+        color: #9ca3af;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes scaleIn {
+        from {
+          transform: scale(0.95);
+        }
+        to {
+          transform: scale(1);
+        }
+      }
+      .modal-fade-in {
+        animation: fadeIn 0.2s ease-out forwards;
+      }
+      .modal-scale-in {
+        animation: scaleIn 0.2s ease-out forwards;
+      }
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+      }
+      .calendar-day.today {
+        background-color: var(--color-primary-100, #eef2ff);
+        color: var(--color-primary-800, #312e81);
+        font-weight: bold;
+      }
+      .dark .calendar-day.today {
+        background-color: var(--color-primary-800, #3730a3);
+        color: var(--color-primary-200, #e0e7ff);
+      }
+      .calendar-day.selected {
+        background-color: var(--color-primary-600, #4f46e5) !important;
+        color: white !important;
+        font-weight: bold;
+      }
+      .sidebar-icon-active {
+        background-color: var(--color-primary-100, #eef2ff);
+        color: var(--color-primary-600, #4f46e5);
+      }
+      .dark .sidebar-icon-active {
+        background-color: var(--color-primary-700, #4338ca);
+        color: var(--color-primary-300, #c7d2fe);
+      }
+      .d3-tooltip {
+        position: absolute;
+        text-align: center;
+        padding: 8px;
+        font: 12px sans-serif;
+        background: #27272a;
+        color: #fafafa;
+        border: 0px;
+        border-radius: 8px;
+        pointer-events: none;
+        opacity: 0;
+      }
+      /* Styles for the D3 graph */
+      .links line {
+        stroke: #999;
+        stroke-opacity: 0.6;
+      }
+      .nodes circle {
+        stroke: #fff;
+        stroke-width: 1.5px;
+      }
+      .nodes text {
+        font-family: "Inter", sans-serif;
+        fill: #e2e8f0;
+        font-size: 11px;
+        pointer-events: none;
+        text-anchor: middle;
+        dominant-baseline: central;
+      }
+      .nodes g:hover {
+        cursor: pointer;
+      }
+      /* Sub-skill modal */
+      #sub-skill-modal {
+        transition: opacity 0.3s ease;
+      }
+      /* Fireworks particles */
+      .particle {
+        pointer-events: none;
+      }
+      /* Make Python and Design text white */
+      .text-python {
+        color: white;
+      }
+
+      .text-design {
+        color: white;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200"
+  >
+    <div class="flex min-h-screen">
+      <!-- Left Sidebar -->
+      <aside
+        class="w-16 md:w-20 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col items-center py-6 space-y-6"
+      >
+        <div id="sidebar-logo" class="text-3xl text-indigo-600">🛡️</div>
+        <nav id="sidebar-nav" class="flex flex-col items-center space-y-4">
+          <a
+            href="#"
+            class="p-2 rounded-lg sidebar-icon-active"
+            title="Dashboard"
+            data-view="dashboard"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+              ></path>
+            </svg>
+          </a>
+          <a
+            href="#"
+            class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+            title="Achievements"
+            data-view="achievements"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4l2 2h4a2 2 0 012 2v2M9 21v-4a2 2 0 012-2h2a2 2 0 012 2v4M9 21h6"
+              ></path>
+            </svg>
+          </a>
+          <a
+            href="#"
+            class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700"
+            title="Analytics"
+            data-view="analytics"
+          >
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
+              ></path>
+            </svg>
+          </a>
+        </nav>
+        <div class="flex-grow"></div>
+      </aside>
+
+      <!-- Main Content Area -->
+      <div class="flex-1 flex flex-col lg:flex-row">
+        <main class="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
+          <header
+            class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8"
+          >
+            <div>
+              <h1
+                id="header-title"
+                class="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight"
+              >
+                Dashboard
+              </h1>
+              <p
+                id="header-subtitle"
+                class="mt-1 text-lg text-slate-600 dark:text-slate-400"
+              >
+                Welcome back, Adventurer!
+              </p>
+            </div>
+            <button
+              id="main-action-btn"
+              class="mt-4 sm:mt-0 bg-indigo-600 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transition-all-smooth transform hover:scale-105"
+            >
+              Start a New Quest
+            </button>
+          </header>
+
+          <!-- View: Dashboard -->
+          <div id="view-dashboard" class="view-container">
+            <div
+              class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 mb-8"
+            >
+              <div
+                class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm flex items-center space-x-4"
+              >
+                <div id="level-icon" class="text-5xl"></div>
+                <div>
+                  <p
+                    id="level-display"
+                    class="text-lg font-semibold text-indigo-700 dark:text-indigo-400"
+                  >
+                    Level 1: Page
+                  </p>
+                  <p
+                    id="xp-progress-text"
+                    class="text-sm text-slate-500 dark:text-slate-400"
+                  >
+                    0 / 100 XP
+                  </p>
+                </div>
+              </div>
+              <div
+                class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm flex items-center space-x-4"
+              >
+                <div class="text-4xl">⭐</div>
+                <div>
+                  <p class="text-lg font-semibold">Total Experience</p>
+                  <p
+                    id="xp-display"
+                    class="text-2xl font-bold text-slate-800 dark:text-white"
+                  >
+                    0 XP
+                  </p>
+                </div>
+              </div>
+              <div
+                class="bg-white dark:bg-slate-800 p-5 rounded-xl shadow-sm flex items-center space-x-4"
+              >
+                <div class="text-4xl">🗺️</div>
+                <div>
+                  <p class="text-lg font-semibold">Active Quests</p>
+                  <p
+                    id="active-quests-count"
+                    class="text-2xl font-bold text-slate-800 dark:text-white"
+                  >
+                    0
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 xl:grid-cols-5 gap-8 mb-8">
+              <div class="xl:col-span-5">
+                <h2
+                  class="text-2xl font-bold mb-4 text-slate-900 dark:text-white"
+                >
+                  Active Quests
+                </h2>
+                <div id="quests-list-dashboard" class="space-y-6"></div>
+              </div>
+            </div>
+            <div>
+              <div
+                class="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm text-center"
+              >
+                <blockquote
+                  id="quote-text"
+                  class="text-lg italic text-slate-600 dark:text-slate-400"
+                ></blockquote>
+                <p
+                  id="quote-author"
+                  class="text-right mt-4 font-semibold text-slate-700 dark:text-slate-300"
+                ></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- View: Achievements -->
+          <div id="view-achievements" class="view-container hidden">
+            <div
+              id="achievements-gallery"
+              class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+            ></div>
+          </div>
+
+          <!-- View: Analytics -->
+          <div id="view-analytics" class="view-container hidden space-y-8">
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm">
+              <h3 class="font-bold text-lg mb-2">XP Gained Per Week</h3>
+              <div id="xp-chart"></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm">
+                <h3 class="font-bold text-lg mb-2 text-white">
+                  Quest Categories
+                </h3>
+                <div id="category-chart"></div>
+              </div>
+              <div class="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm">
+                <h2
+                  class="text-2xl font-bold text-slate-900 dark:text-white mb-2"
+                >
+                  Map Your Universe of Skills
+                </h2>
+                <p class="text-slate-600 dark:text-slate-400 mb-4">
+                  Add new skills, then click on them to add sub-skills. Drag
+                  nodes to organize your universe!
+                </p>
+                <div
+                  id="skill-graph-container"
+                  class="w-full h-96 md:h-[500px] relative bg-slate-50 dark:bg-slate-900 rounded-lg"
+                ></div>
+                <div
+                  class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4"
+                >
+                  <input
+                    type="text"
+                    id="skill-input"
+                    class="bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white rounded-lg px-4 py-2 w-full sm:w-64 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Enter a new skill..."
+                  />
+                  <button
+                    id="add-skill-btn"
+                    class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg w-full sm:w-auto"
+                  >
+                    Add Skill
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside
+          id="right-sidebar"
+          class="w-full lg:w-80 xl:w-96 bg-white dark:bg-slate-800 border-l border-slate-200 dark:border-slate-700 p-6 flex-shrink-0"
+        >
+          <div class="sticky top-6">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h3 id="calendar-month-year" class="text-lg font-bold"></h3>
+                <div class="flex space-x-2">
+                  <button
+                    id="prev-month-btn"
+                    class="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+                  >
+                    &lt;</button
+                  ><button
+                    id="next-month-btn"
+                    class="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+                  >
+                    &gt;
+                  </button>
+                </div>
+              </div>
+              <div
+                class="calendar-grid text-center text-sm mb-2 font-semibold text-slate-500"
+              >
+                <div>S</div>
+                <div>M</div>
+                <div>T</div>
+                <div>W</div>
+                <div>T</div>
+                <div>F</div>
+                <div>S</div>
+              </div>
+              <div
+                id="calendar-days"
+                class="calendar-grid text-center text-sm"
+              ></div>
+            </div>
+            <div class="mt-8">
+              <h3 class="text-lg font-bold mb-4">Focus Timer</h3>
+              <div class="flex items-center justify-around">
+                <button
+                  id="timer-minus-btn"
+                  class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-2xl font-bold"
+                >
+                  -
+                </button>
+                <div class="relative w-40 h-40">
+                  <svg class="w-full h-full" viewBox="0 0 100 100">
+                    <circle
+                      class="text-slate-200 dark:text-slate-700"
+                      stroke-width="8"
+                      stroke="currentColor"
+                      fill="transparent"
+                      r="45"
+                      cx="50"
+                      cy="50"
+                    />
+                    <circle
+                      id="timer-progress-circle"
+                      class="text-indigo-600"
+                      stroke-width="8"
+                      stroke-linecap="round"
+                      stroke="currentColor"
+                      fill="transparent"
+                      r="45"
+                      cx="50"
+                      cy="50"
+                      style="
+                        transform: rotate(-90deg);
+                        transform-origin: 50% 50%;
+                        transition: stroke-dashoffset 1s linear;
+                      "
+                    />
+                  </svg>
+                  <div
+                    id="timer-display"
+                    class="absolute inset-0 flex items-center justify-center text-4xl font-bold"
+                  >
+                    25:00
+                  </div>
+                </div>
+                <button
+                  id="timer-plus-btn"
+                  class="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-2xl font-bold"
+                >
+                  +
+                </button>
+              </div>
+              <div class="mt-4 flex justify-center">
+                <button
+                  id="timer-control-btn"
+                  class="bg-indigo-600 text-white font-bold py-2 px-8 rounded-full"
+                >
+                  Start
+                </button>
+              </div>
+            </div>
+            <div class="mt-8">
+              <h3 id="schedule-date" class="text-lg font-bold mb-4">
+                Today's Tasks
+              </h3>
+              <div id="todo-list" class="space-y-2"></div>
+              <form id="new-todo-form" class="mt-4 flex">
+                <input
+                  type="text"
+                  id="new-todo-input"
+                  class="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="Add a quick task..."
+                />
+                <button
+                  type="submit"
+                  class="bg-indigo-600 text-white font-bold px-4 rounded-r-lg"
+                >
+                  +
+                </button>
+              </form>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <input
+      type="file"
+      id="achievement-file-input"
+      class="hidden"
+      accept="image/*"
+    />
+    <div
+      id="new-quest-modal"
+      class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 transition-opacity duration-200 opacity-0 pointer-events-none z-50"
+    >
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg transform transition-transform duration-200 scale-95"
+      >
+        <form id="new-quest-form" class="p-8">
+          <h3 class="text-2xl font-bold mb-2">Embark on a New Quest!</h3>
+          <p class="text-slate-600 dark:text-slate-400 mb-6">
+            Define your next adventure.
+          </p>
+          <div class="mb-4">
+            <label for="quest-name" class="block text-sm font-medium mb-1"
+              >Quest Name</label
+            ><input
+              type="text"
+              id="quest-name"
+              placeholder="e.g., Build a Python Web Scraper"
+              class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-700 border rounded-lg"
+              required
+            />
+          </div>
+          <div class="mb-4">
+            <label for="quest-tech" class="block text-sm font-medium mb-1"
+              >Quest Categories (comma-separated)</label
+            ><input
+              type="text"
+              id="quest-tech"
+              list="tech-list"
+              placeholder="e.g., Python, SQL, Git"
+              class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-700 border rounded-lg"
+              required
+            /><datalist id="tech-list"></datalist>
+          </div>
+          <div class="mb-6">
+            <label for="quest-tasks" class="block text-sm font-medium mb-1"
+              >Tasks (one per line)</label
+            ><textarea
+              id="quest-tasks"
+              rows="5"
+              placeholder="Research BeautifulSoup library&#10;Write initial parsing script"
+              class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-700 border rounded-lg"
+              required
+            ></textarea>
+          </div>
+          <div class="flex justify-end space-x-4">
+            <button
+              type="button"
+              id="cancel-quest-btn"
+              class="bg-slate-200 dark:bg-slate-600 font-semibold py-2 px-6 rounded-lg"
+            >
+              Cancel</button
+            ><button
+              type="submit"
+              class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg"
+            >
+              Begin Quest
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div
+      id="confirm-modal"
+      class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 transition-opacity duration-200 opacity-0 pointer-events-none z-50"
+    >
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm transform transition-transform duration-200 scale-95 p-6 text-center"
+      >
+        <h3 id="confirm-title" class="text-lg font-bold mb-2">Are you sure?</h3>
+        <p id="confirm-message" class="text-slate-600 dark:text-slate-400 mb-6">
+          This cannot be undone.
+        </p>
+        <div class="flex justify-center space-x-4">
+          <button
+            id="confirm-cancel-btn"
+            class="bg-slate-200 dark:bg-slate-600 font-semibold py-2 px-6 rounded-lg"
+          >
+            Cancel</button
+          ><button
+            id="confirm-ok-btn"
+            class="bg-red-600 text-white font-bold py-2 px-6 rounded-lg"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      id="achievement-modal"
+      class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 transition-opacity duration-200 opacity-0 pointer-events-none z-50"
+    >
+      <div
+        class="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm transform transition-transform duration-200 scale-95 p-6"
+      >
+        <h3 class="text-lg font-bold mb-4">New Achievement</h3>
+        <div class="mb-4">
+          <label for="achievement-title" class="block text-sm font-medium mb-1"
+            >Title</label
+          ><input
+            type="text"
+            id="achievement-title"
+            placeholder="e.g., Data Science Certificate"
+            class="w-full px-4 py-2 bg-slate-100 dark:bg-slate-700 border rounded-lg"
+          />
+        </div>
+        <div class="flex justify-end space-x-4">
+          <button
+            type="button"
+            id="cancel-achievement-btn"
+            class="bg-slate-200 dark:bg-slate-600 font-semibold py-2 px-6 rounded-lg"
+          >
+            Cancel</button
+          ><button
+            type="button"
+            id="save-achievement-btn"
+            class="bg-indigo-600 text-white font-bold py-2 px-6 rounded-lg"
+          >
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      id="theme-popover"
+      class="fixed bottom-20 left-24 bg-white dark:bg-slate-700 p-4 rounded-lg shadow-2xl transition-all-smooth transform scale-95 opacity-0 pointer-events-none z-50"
+    >
+      <h4 class="font-bold mb-2">Customize Theme</h4>
+      <div class="flex items-center justify-between mb-4">
+        <label for="theme-mode-switch" class="text-sm">Mode</label>
+        <div class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="theme-mode-switch" class="sr-only peer" />
+          <div
+            class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-500 peer-checked:bg-indigo-600"
+          ></div>
+          <span
+            class="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300"
+            >Dark</span
+          >
+        </div>
+      </div>
+    </div>
+    <div
+      id="sub-skill-modal"
+      class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 hidden z-50"
+    >
+      <div
+        class="bg-white dark:bg-slate-800 rounded-lg shadow-xl p-6 w-full max-w-sm"
+      >
+        <h3 class="text-2xl font-bold mb-4">
+          Add Sub-Skill to
+          <span id="parent-skill-name" class="font-semibold"></span>
+        </h3>
+        <input
+          type="text"
+          id="sub-skill-input"
+          class="bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg px-4 py-2 w-full mb-4 focus:ring-indigo-500 focus:border-indigo-500"
+          placeholder="Enter sub-skill..."
+        />
+        <div class="flex justify-end gap-4">
+          <button
+            id="cancel-sub-skill-btn"
+            class="bg-slate-200 dark:bg-slate-600 font-bold py-2 px-4 rounded-lg"
+          >
+            Cancel
+          </button>
+          <button
+            id="add-sub-skill-btn"
+            class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- CONFIGURATION ---
+        const XP_PER_TASK = 10;
+        const LEVEL_MILESTONES = [
+          { level: 1, name: "Page", xp: 0, icon: "🛡️" },
+          { level: 2, name: "Squire", xp: 100, icon: "⚔️" },
+          { level: 3, name: "Knight", xp: 250, icon: "🐴" },
+          { level: 4, name: "Banneret", xp: 500, icon: "🏰" },
+          { level: 5, name: "Paladin", xp: 800, icon: "⚜️" },
+          { level: 6, name: "Lord", xp: 1200, icon: "👑" },
+        ];
+        const QUOTES = [
+          {
+            text: "The journey of a thousand miles begins with a single step.",
+            author: "Lao Tzu",
+          },
+          {
+            text: "The only true wisdom is in knowing you know nothing.",
+            author: "Socrates",
+          },
+          {
+            text: "An investment in knowledge pays the best interest.",
+            author: "Benjamin Franklin",
+          },
+          {
+            text: "The expert in anything was once a beginner.",
+            author: "Helen Hayes",
+          },
+          {
+            text: "The goal is to turn data into information, and information into insight.",
+            author: "Carly Fiorina",
+          },
+          {
+            text: "It does not matter how slowly you go as long as you do not stop.",
+            author: "Confucius",
+          },
+          {
+            text: "What we learn with pleasure we never forget.",
+            author: "Alfred Mercier",
+          },
+          {
+            text: "He who asks a question is a fool for five minutes; he who does not ask a question remains a fool forever.",
+            author: "Chinese Proverb",
+          },
+          {
+            text: "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+            author: "Winston Churchill",
+          },
+          {
+            text: "Without data, you're just another person with an opinion.",
+            author: "W. Edwards Deming",
+          },
+          {
+            text: "The beautiful thing about learning is that no one can take it away from you.",
+            author: "B.B. King",
+          },
+          {
+            text: "A smooth sea never made a skilled sailor.",
+            author: "Franklin D. Roosevelt",
+          },
+          {
+            text: "I have not failed. I've just found 10,000 ways that won't work.",
+            author: "Thomas Edison",
+          },
+          {
+            text: "Fall seven times, stand up eight.",
+            author: "Japanese Proverb",
+          },
+          {
+            text: "The only source of knowledge is experience.",
+            author: "Albert Einstein",
+          },
+          {
+            text: "The mind is not a vessel to be filled, but a fire to be kindled.",
+            author: "Plutarch",
+          },
+          {
+            text: "Mistakes are the portals of discovery.",
+            author: "James Joyce",
+          },
+          {
+            text: "Knowledge is a weapon. I intend to be formidably armed.",
+            author: "Terry Goodkind",
+          },
+          { text: "Strive for progress, not perfection.", author: "Unknown" },
+          {
+            text: "The man who moves a mountain begins by carrying away small stones.",
+            author: "Confucius",
+          },
+          {
+            text: "You are never too old to set another goal or to dream a new dream.",
+            author: "C.S. Lewis",
+          },
+          {
+            text: "The quieter you become, the more you are able to hear.",
+            author: "Rumi",
+          },
+          {
+            text: "Obstacles are what you see when you take your eyes off the goal.",
+            author: "Henry Ford",
+          },
+          {
+            text: "Our greatest glory is not in never falling, but in rising every time we fall.",
+            author: "Confucius",
+          },
+          {
+            text: "Hard work is worthless for those who don't believe in themselves.",
+            author: "Naruto Uzumaki (Naruto)",
+          },
+          {
+            text: "If you don't take risks, you can't create a future.",
+            author: "Monkey D. Luffy (One Piece)",
+          },
+          {
+            text: "A lesson without pain is meaningless. You can't gain something without sacrificing something else in return.",
+            author: "Edward Elric (Fullmetal Alchemist: Brotherhood)",
+          },
+          {
+            text: "Even a pawn can take down a king.",
+            author: "Lelouch Lamperouge (Code Geass)",
+          },
+          {
+            text: "Knowing you're different is only the beginning. If you accept these differences, you'll be able to surpass your limits.",
+            author: "Gohan (Dragon Ball Z)",
+          },
+          {
+            text: "If you don't like your destiny, don't accept it. Instead, have the courage to change it.",
+            author: "Naruto Uzumaki (Naruto)",
+          },
+          {
+            text: "Whatever you lose, you'll find it again. But what you throw away you'll never get back.",
+            author: "Kenshin Himura (Rurouni Kenshin)",
+          },
+          {
+            text: "If you can’t do something, then don’t. Focus on what you can.",
+            author: "Shiroe (Log Horizon)",
+          },
+          {
+            text: "Stand up and walk. Keep moving forward. You've got two good legs. So get up and use them.",
+            author: "Edward Elric (Fullmetal Alchemist)",
+          },
+          {
+            text: "The world isn't perfect. But it's there for us, doing the best it can. That's what makes it so damn beautiful.",
+            author: "Roy Mustang (Fullmetal Alchemist)",
+          },
+          {
+            text: "People’s lives don’t end when they die. It ends when they lose faith.",
+            author: "Itachi Uchiha (Naruto)",
+          },
+          {
+            text: "It's not about being right or wrong. There are more important things than that.",
+            author: "L (Death Note)",
+          },
+          {
+            text: "Simplicity is the easiest path to true beauty.",
+            author: "Seishuu Handa (Barakamon)",
+          },
+          {
+            text: "We don't have to know what tomorrow holds! That's why we can live for everything we're worth today!",
+            author: "Natsu Dragneel (Fairy Tail)",
+          },
+          {
+            text: "There's no shame in falling down! True shame is to not stand up again!",
+            author: "Shintaro Midorima (Kuroko's Basketball)",
+          },
+          {
+            text: "Talent is something you make bloom. Instinct is something you polish.",
+            author: "Tooru Oikawa (Haikyuu!!)",
+          },
+          {
+            text: "Those who cannot acknowledge themselves will eventually fail.",
+            author: "Itachi Uchiha (Naruto)",
+          },
+          {
+            text: "Sometimes, the things that matter the most are right in front of you.",
+            author: "Gintoki Sakata (Gintama)",
+          },
+          {
+            text: "Skills aren't just about being cool. They're about connecting you with others.",
+            author: "Mob (Mob Psycho 100)",
+          },
+          {
+            text: "Every journey begins with a single step. We just have to have patience.",
+            author: "Milly Thompson (Trigun)",
+          },
+          {
+            text: "The difference between a novice and a master is that a master has failed more times than a novice has tried.",
+            author: "Koro-sensei (Assassination Classroom)",
+          },
+          {
+            text: "You should never give up on life, no matter how you feel.",
+            author: "Ciel Phantomhive (Black Butler)",
+          },
+          {
+            text: "Do not seek the path of the ancients; seek what they sought.",
+            author: "Houtarou Oreki (Hyouka)",
+          },
+          {
+            text: "To know sorrow is not terrifying. What is terrifying is to know you can't go back to the happiness you could have.",
+            author: "Rangiku Matsumoto (Bleach)",
+          },
+          {
+            text: "Reject common sense to make the impossible possible.",
+            author: "Simon (Tengen Toppa Gurren Lagann)",
+          },
+        ];
+
+        // --- DOM ELEMENTS ---
+        const $ = (selector) => document.querySelector(selector);
+        const $$ = (selector) => document.querySelectorAll(selector);
+        const dashboard = {
+          levelIcon: $("#level-icon"),
+          levelDisplay: $("#level-display"),
+          xpDisplay: $("#xp-display"),
+          xpProgressText: $("#xp-progress-text"),
+          activeQuestsCount: $("#active-quests-count"),
+        };
+        const questLists = { dashboard: $("#quests-list-dashboard") };
+        const calendar = {
+          monthYear: $("#calendar-month-year"),
+          daysGrid: $("#calendar-days"),
+          prevBtn: $("#prev-month-btn"),
+          nextBtn: $("#next-month-btn"),
+        };
+        const schedule = {
+          date: $("#schedule-date"),
+          todoList: $("#todo-list"),
+          newTodoForm: $("#new-todo-form"),
+          newTodoInput: $("#new-todo-input"),
+        };
+        const sidebar = {
+          nav: $("#sidebar-nav"),
+          navLinks: $$("#sidebar-nav a"),
+          headerTitle: $("#header-title"),
+          headerSubtitle: $("#header-subtitle"),
+          mainActionBtn: $("#main-action-btn"),
+          rightSidebar: $("#right-sidebar"),
+        };
+        const views = { containers: $$(".view-container") };
+        const achievements = {
+          gallery: $("#achievements-gallery"),
+          fileInput: $("#achievement-file-input"),
+          modal: $("#achievement-modal"),
+          titleInput: $("#achievement-title"),
+          cancelBtn: $("#cancel-achievement-btn"),
+          saveBtn: $("#save-achievement-btn"),
+        };
+        const quoteElements = {
+          text: $("#quote-text"),
+          author: $("#quote-author"),
+        };
+        const timer = {
+          display: $("#timer-display"),
+          controlBtn: $("#timer-control-btn"),
+          plusBtn: $("#timer-plus-btn"),
+          minusBtn: $("#timer-minus-btn"),
+          progressCircle: $("#timer-progress-circle"),
+        };
+        const analyticsCharts = {
+          xp: { container: $("#xp-chart"), chart: null },
+          category: { container: $("#category-chart"), chart: null },
+          skillGraph: {
+            container: $("#skill-graph-container"),
+            input: $("#skill-input"),
+            addBtn: $("#add-skill-btn"),
+            subSkillModal: $("#sub-skill-modal"),
+            parentSkillNameSpan: $("#parent-skill-name"),
+            subSkillInput: $("#sub-skill-input"),
+            addSubSkillBtn: $("#add-sub-skill-btn"),
+            cancelSubSkillBtn: $("#cancel-sub-skill-btn"),
+          },
+        };
+        // Modals
+        const newQuestModal = {
+          element: $("#new-quest-modal"),
+          form: $("#new-quest-form"),
+          cancelBtn: $("#cancel-quest-btn"),
+        };
+        const confirmModal = {
+          element: $("#confirm-modal"),
+          title: $("#confirm-title"),
+          message: $("#confirm-message"),
+          okBtn: $("#confirm-ok-btn"),
+          cancelBtn: $("#confirm-cancel-btn"),
+        };
+
+        // --- APPLICATION STATE ---
+        let state = {
+          xp: 0,
+          quests: [],
+          todos: {},
+          achievements: [],
+          skillGraphData: { nodes: [], links: [] },
+          theme: { mode: "light", primaryColor: "#4f46e5", bgColor: "#f8fafc" },
+          allSkills: [],
+        };
+        let currentDate = new Date();
+        let selectedDate = new Date();
+        let tempAchievementFile = null;
+
+        // Timer state
+        let timerInterval = null;
+        let timerIsRunning = false;
+        let timerTotalSeconds = 25 * 60;
+        let timerRemainingSeconds = 25 * 60;
+        const CIRCLE_RADIUS = 45;
+        const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
+
+        // --- DATA & STATE MANAGEMENT ---
+        function saveData() {
+          localStorage.setItem("projectQuestState_v15", JSON.stringify(state));
+        }
+        function loadData() {
+          const savedState = localStorage.getItem("projectQuestState_v15");
+          if (savedState) {
+            state = JSON.parse(savedState);
+            if (!state.skillGraphData)
+              state.skillGraphData = { nodes: [], links: [] };
+            if (!state.theme)
+              state.theme = {
+                mode: "light",
+                primaryColor: "#4f46e5",
+                bgColor: "#f8fafc",
+              };
+            if (!state.allSkills) state.allSkills = [];
+          }
+        }
+        function toISODateString(date) {
+          return date.toISOString().split("T")[0];
+        }
+
+        // --- CORE RENDERING ---
+        function updateAll() {
+          saveData();
+          renderDashboard();
+          renderQuests();
+          renderAchievements();
+          renderCalendar();
+          renderTodos();
+          if ($("#view-analytics").offsetParent !== null) {
+            // Only render if visible
+            renderAllAnalytics();
+          }
+        }
+
+        function renderDashboard() {
+          const { currentLevelInfo, nextLevelInfo } = getLevelInfo(state.xp);
+          dashboard.xpDisplay.textContent = `${state.xp} XP`;
+          dashboard.levelDisplay.textContent = `Level ${currentLevelInfo.level}: ${currentLevelInfo.name}`;
+          dashboard.levelIcon.textContent = currentLevelInfo.icon;
+          dashboard.activeQuestsCount.textContent = state.quests.length;
+          if (nextLevelInfo) {
+            const xpInLevel = state.xp - currentLevelInfo.xp;
+            const xpToNext = nextLevelInfo.xp - currentLevelInfo.xp;
+            dashboard.xpProgressText.textContent = `${xpInLevel} / ${xpToNext} XP`;
+          } else {
+            dashboard.xpProgressText.textContent = "Max Level Reached!";
+          }
+        }
+
+        function renderQuests() {
+          const container = questLists.dashboard;
+          if (!container) return;
+          const noQuestsHTML = `<p class="text-center text-slate-500 bg-white dark:bg-slate-800 rounded-xl p-8 shadow-sm">No active quests. Start one to begin!</p>`;
+          container.innerHTML = "";
+          if (state.quests.length === 0) {
+            container.innerHTML = noQuestsHTML;
+          } else {
+            state.quests.forEach((quest, index) =>
+              container.appendChild(createQuestElement(quest, index))
+            );
+          }
+        }
+
+        function renderAchievements() {
+          achievements.gallery.innerHTML = "";
+          if (state.achievements.length === 0) {
+            achievements.gallery.innerHTML = `<p class="col-span-full text-center text-slate-500">No achievements yet. Upload your first one!</p>`;
+          } else {
+            state.achievements.forEach((ach, index) => {
+              achievements.gallery.appendChild(
+                createAchievementElement(ach, index)
+              );
+            });
+          }
+        }
+
+        function renderRandomQuote() {
+          const randomIndex = Math.floor(Math.random() * QUOTES.length);
+          const quote = QUOTES[randomIndex];
+          quoteElements.text.textContent = `"${quote.text}"`;
+          quoteElements.author.textContent = `- ${quote.author}`;
+        }
+
+        // --- ANALYTICS RENDERING ---
+        function renderAllAnalytics() {
+          renderXpPerWeekChart();
+          renderCategoryPieChart();
+          renderSkillGraph();
+        }
+
+        function renderXpPerWeekChart() {
+          const isDarkMode = state.theme.mode === "dark";
+          const options = {
+            series: [{ name: "XP Gained", data: [10, 41, 35, 51, 49, 62, 69] }],
+            chart: {
+              type: "area",
+              height: 250,
+              toolbar: { show: false },
+              background: "transparent",
+            },
+            dataLabels: { enabled: false },
+            stroke: { curve: "smooth", width: 2 },
+            xaxis: {
+              categories: ["W1", "W2", "W3", "W4", "W5", "W6", "W7"],
+              labels: { style: { colors: isDarkMode ? "#94a3b8" : "#64748b" } },
+            },
+            yaxis: {
+              labels: { style: { colors: isDarkMode ? "#94a3b8" : "#64748b" } },
+            },
+            grid: { borderColor: isDarkMode ? "#334155" : "#e2e8f0" },
+            tooltip: { theme: isDarkMode ? "dark" : "light" },
+            colors: [state.theme.primaryColor],
+          };
+
+          if (analyticsCharts.xp.chart)
+            analyticsCharts.xp.chart.updateOptions(options);
+          else {
+            analyticsCharts.xp.chart = new ApexCharts(
+              analyticsCharts.xp.container,
+              options
+            );
+            analyticsCharts.xp.chart.render();
+          }
+        }
+
+        function renderCategoryPieChart() {
+          const isDarkMode = state.theme.mode === "dark";
+          const options = {
+            series: [44, 55, 13, 43],
+            labels: ["Python", "JavaScript", "SQL", "Design"],
+            chart: { type: "pie", height: 350, background: "transparent" },
+            theme: { mode: isDarkMode ? "dark" : "light", palette: "palette1" },
+            legend: {
+              position: "bottom",
+              labels: {
+                colors: isDarkMode ? "#94a3b8" : "#ffffff",
+                useSeriesColors: false,
+              },
+            },
+          };
+
+          if (analyticsCharts.category.chart)
+            analyticsCharts.category.chart.updateOptions(options);
+          else {
+            analyticsCharts.category.chart = new ApexCharts(
+              analyticsCharts.category.container,
+              options
+            );
+            analyticsCharts.category.chart.render();
+          }
+        }
+
+        function renderSkillGraph() {
+          const container = analyticsCharts.skillGraph.container;
+          const {
+            input: skillInput,
+            addBtn: addSkillButton,
+            subSkillModal: modal,
+            parentSkillNameSpan,
+            subSkillInput,
+            addSubSkillBtn: addSubSkillButton,
+            cancelSubSkillBtn: cancelSubSkillButton,
+          } = analyticsCharts.skillGraph;
+
+          container.innerHTML = "";
+
+          const width = container.clientWidth;
+          const height = container.clientHeight;
+          const svg = d3
+            .select(container)
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("viewBox", [-width / 2, -height / 2, width, height]);
+
+          let nodes = state.skillGraphData.nodes;
+          let links = state.skillGraphData.links;
+          let selectedNode = null;
+
+          if (nodes.length === 0) {
+            nodes.push({ id: "You", group: 1, radius: 25 });
+          }
+
+          const simulation = d3
+            .forceSimulation()
+            .velocityDecay(0.8)
+            .force(
+              "link",
+              d3
+                .forceLink()
+                .id((d) => d.id)
+                .distance((d) => (d.target.group === 3 ? 60 : 120))
+            )
+            .force("charge", d3.forceManyBody().strength(-250))
+            .force("center", d3.forceCenter(0, 0));
+
+          const linkGroup = svg.append("g").attr("class", "links");
+          const nodeGroup = svg.append("g").attr("class", "nodes");
+          const particleGroup = svg.append("g").attr("class", "particles");
+
+          function createFireworks(x, y) {
+            const numParticles = 50;
+            d3.range(numParticles).forEach(() => {
+              const angle = Math.random() * 2 * Math.PI;
+              const distance = Math.random() * 120 + 40;
+              const targetX = x + Math.cos(angle) * distance;
+              const targetY = y + Math.sin(angle) * distance;
+
+              particleGroup
+                .append("circle")
+                .attr("class", "particle")
+                .attr("cx", x)
+                .attr("cy", y)
+                .attr("r", 3)
+                .style("fill", getRandomColor())
+                .transition()
+                .duration(1500)
+                .ease(d3.easeQuadOut)
+                .attr("cx", targetX)
+                .attr("cy", targetY)
+                .style("opacity", 0)
+                .remove();
+            });
+          }
+
+          function updateGraph() {
+            const node = nodeGroup.selectAll("g").data(nodes, (d) => d.id);
+            node.exit().remove();
+            const nodeEnter = node
+              .enter()
+              .append("g")
+              .call(drag(simulation))
+              .on("click", handleNodeClick);
+
+            nodeEnter
+              .append("circle")
+              .attr("r", (d) => d.radius)
+              .attr("fill", (d) => {
+                if (d.group === 1) return "#f59e0b";
+                return d.color || "#4a5568";
+              });
+
+            nodeEnter
+              .append("text")
+              .text((d) => d.id)
+              .attr("y", 0)
+              .attr("dy", (d) => d.radius + 12);
+
+            const link = linkGroup
+              .selectAll("line")
+              .data(links, (d) => `${d.source.id}-${d.target.id}`);
+            link.exit().remove();
+            link.enter().insert("line", "g");
+
+            simulation.nodes(nodes);
+            simulation.force("link").links(links);
+            simulation.alpha(1).restart();
+          }
+
+          simulation.on("tick", () => {
+            linkGroup
+              .selectAll("line")
+              .attr("x1", (d) => d.source.x)
+              .attr("y1", (d) => d.source.y)
+              .attr("x2", (d) => d.target.x)
+              .attr("y2", (d) => d.target.y);
+            nodeGroup
+              .selectAll("g")
+              .attr("transform", (d) => `translate(${d.x},${d.y})`);
+
+            const q = d3.quadtree(
+              nodes,
+              (d) => d.x,
+              (d) => d.y
+            );
+            for (const node of nodes) {
+              q.visit((quad, x1, y1, x2, y2) => {
+                if (!quad.length) {
+                  do {
+                    if (quad.data && quad.data !== node) {
+                      const dx = node.x - quad.data.x;
+                      const dy = node.y - quad.data.y;
+                      const distance = Math.sqrt(dx * dx + dy * dy);
+                      const minDistance = node.radius + quad.data.radius;
+
+                      if (distance < minDistance) {
+                        const now = Date.now();
+                        const cooldown = 500;
+                        if (
+                          (!node.lastCollisionTime ||
+                            now - node.lastCollisionTime > cooldown) &&
+                          (!quad.data.lastCollisionTime ||
+                            now - quad.data.lastCollisionTime > cooldown)
+                        ) {
+                          node.lastCollisionTime = now;
+                          quad.data.lastCollisionTime = now;
+                          createFireworks(
+                            (node.x + quad.data.x) / 2,
+                            (node.y + quad.data.y) / 2
+                          );
+                        }
+                      }
+                    }
+                  } while ((quad = quad.next));
+                }
+                return (
+                  x1 > node.x + node.radius ||
+                  x2 < node.x - node.radius ||
+                  y1 > node.y + node.radius ||
+                  y2 < node.y - node.radius
+                );
+              });
+            }
+          });
+
+          function handleNodeClick(event, d) {
+            if (d.group !== 1) {
+              selectedNode = d;
+              parentSkillNameSpan.textContent = d.id;
+              modal.classList.remove("hidden");
+              subSkillInput.focus();
+            }
+          }
+
+          function addNewSkill() {
+            const skillName = skillInput.value.trim();
+            if (skillName && !nodes.find((n) => n.id === skillName)) {
+              const newNode = {
+                id: skillName,
+                group: 2,
+                radius: 20,
+                color: getRandomColor(),
+              };
+              nodes.push(newNode);
+              links.push({ source: "You", target: skillName });
+              updateGraph();
+              setTimeout(
+                () => createFireworks(newNode.x || 0, newNode.y || 0),
+                200
+              );
+              skillInput.value = "";
+              saveData();
+            }
+          }
+
+          function addNewSubSkill() {
+            const subSkillName = subSkillInput.value.trim();
+            if (
+              subSkillName &&
+              selectedNode &&
+              !nodes.find((n) => n.id === subSkillName)
+            ) {
+              const newNode = {
+                id: subSkillName,
+                group: 3,
+                radius: 15,
+                color: getRandomColor(),
+              };
+              nodes.push(newNode);
+              links.push({ source: selectedNode.id, target: subSkillName });
+              updateGraph();
+              setTimeout(
+                () =>
+                  createFireworks(
+                    newNode.x || selectedNode.x,
+                    newNode.y || selectedNode.y
+                  ),
+                200
+              );
+              closeModal();
+              saveData();
+            }
+          }
+
+          function closeModal() {
+            modal.classList.add("hidden");
+            subSkillInput.value = "";
+            selectedNode = null;
+          }
+
+          addSkillButton.addEventListener("click", addNewSkill);
+          skillInput.addEventListener(
+            "keypress",
+            (e) => e.key === "Enter" && addNewSkill()
+          );
+
+          addSubSkillButton.addEventListener("click", addNewSubSkill);
+          subSkillInput.addEventListener(
+            "keypress",
+            (e) => e.key === "Enter" && addNewSubSkill()
+          );
+
+          cancelSubSkillButton.addEventListener("click", closeModal);
+          modal.addEventListener(
+            "click",
+            (e) => e.target === modal && closeModal()
+          );
+
+          function drag(simulation) {
+            function dragstarted(event, d) {
+              if (!event.active) simulation.alphaTarget(0.3).restart();
+              d.fx = d.x;
+              d.fy = d.y;
+            }
+            function dragged(event, d) {
+              d.fx = event.x;
+              d.fy = event.y;
+            }
+            function dragended(event, d) {
+              if (!event.active) simulation.alphaTarget(0);
+              d.fx = null;
+              d.fy = null;
+              saveData();
+            }
+            return d3
+              .drag()
+              .on("start", dragstarted)
+              .on("drag", dragged)
+              .on("end", dragended);
+          }
+
+          updateGraph();
+        }
+
+        // --- CALENDAR & SCHEDULE ---
+        function renderCalendar() {
+          const month = currentDate.getMonth();
+          const year = currentDate.getFullYear();
+
+          calendar.monthYear.textContent = new Intl.DateTimeFormat("en-US", {
+            month: "long",
+            year: "numeric",
+          }).format(currentDate);
+          calendar.daysGrid.innerHTML = "";
+
+          const firstDayOfMonth = new Date(year, month, 1).getDay();
+          const daysInMonth = new Date(year, month + 1, 0).getDate();
+          const today = new Date();
+
+          for (let i = 0; i < firstDayOfMonth; i++) {
+            calendar.daysGrid.appendChild(document.createElement("div"));
+          }
+
+          for (let day = 1; day <= daysInMonth; day++) {
+            const dayEl = document.createElement("div");
+            dayEl.textContent = day;
+            dayEl.classList.add(
+              "calendar-day",
+              "p-2",
+              "rounded-full",
+              "hover:bg-slate-100",
+              "dark:hover:bg-slate-700",
+              "cursor-pointer",
+              "transition-colors"
+            );
+            const date = new Date(year, month, day);
+            dayEl.dataset.date = toISODateString(date);
+
+            if (
+              year === today.getFullYear() &&
+              month === today.getMonth() &&
+              day === today.getDate()
+            ) {
+              dayEl.classList.add("today");
+            }
+            if (
+              year === selectedDate.getFullYear() &&
+              month === selectedDate.getMonth() &&
+              day === selectedDate.getDate()
+            ) {
+              dayEl.classList.add("selected");
+            }
+
+            calendar.daysGrid.appendChild(dayEl);
+          }
+        }
+
+        function renderTodos() {
+          const dateKey = toISODateString(selectedDate);
+          const today = new Date();
+          if (dateKey === toISODateString(today)) {
+            schedule.date.textContent = "Today's Tasks";
+          } else {
+            schedule.date.textContent = `Tasks for ${selectedDate.toLocaleDateString(
+              "en-US",
+              { month: "long", day: "numeric" }
+            )}`;
+          }
+
+          schedule.todoList.innerHTML = "";
+          const todosForDate = state.todos[dateKey] || [];
+          if (todosForDate.length === 0) {
+            schedule.todoList.innerHTML = `<p class="text-slate-500 text-sm text-center py-2">No tasks for this day.</p>`;
+          } else {
+            todosForDate.forEach((todo, index) => {
+              schedule.todoList.appendChild(
+                createTodoElement(todo, index, dateKey)
+              );
+            });
+          }
+        }
+
+        // --- ELEMENT CREATORS ---
+        function createQuestElement(quest, questIndex) {
+          const card = document.createElement("div");
+          card.className =
+            "bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm transition-all-smooth hover:shadow-md";
+
+          const completedTasks = quest.tasks.filter((t) => t.completed).length;
+          const totalTasks = quest.tasks.length;
+          const progress =
+            totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+          card.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white">${
+                          quest.name
+                        }</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">${
+                          quest.tech
+                        }</p>
+                    </div>
+                    <button data-quest-index="${questIndex}" class="delete-quest-btn text-slate-400 hover:text-red-500 dark:hover:text-red-400 p-1 rounded-full">&times;</button>
+                </div>
+                <div class="mt-4">
+                    <div class="flex justify-between items-center text-sm mb-1">
+                        <span class="font-medium text-slate-600 dark:text-slate-300">Progress</span>
+                        <span class="text-slate-500 dark:text-slate-400">${completedTasks} / ${totalTasks} Tasks</span>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5">
+                        <div class="progress-bar-fill h-2.5 rounded-full" style="width: ${progress}%"></div>
+                    </div>
+                </div>
+                <div class="mt-4 space-y-3">
+                    ${quest.tasks
+                      .map(
+                        (task, taskIndex) => `
+                        <div class="flex items-center">
+                            <input type="checkbox" id="task-${questIndex}-${taskIndex}" class="task-checkbox h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" data-quest-index="${questIndex}" data-task-index="${taskIndex}" ${
+                          task.completed ? "checked" : ""
+                        }>
+                            <label for="task-${questIndex}-${taskIndex}" class="ml-3 block text-sm font-medium text-slate-700 dark:text-slate-300">${
+                          task.text
+                        }</label>
+                        </div>
+                    `
+                      )
+                      .join("")}
+                </div>
+            `;
+          return card;
+        }
+
+        function createTodoElement(todo, index, dateKey) {
+          const todoEl = document.createElement("div");
+          todoEl.className =
+            "flex items-center justify-between bg-slate-100 dark:bg-slate-700 p-2 rounded-lg";
+          todoEl.innerHTML = `
+                <div class="flex items-center">
+                    <input type="checkbox" id="todo-${dateKey}-${index}" class="todo-checkbox h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" data-date-key="${dateKey}" data-todo-index="${index}" ${
+            todo.completed ? "checked" : ""
+          }>
+                    <span class="ml-3 text-sm ${
+                      todo.completed
+                        ? "line-through text-slate-500"
+                        : "text-slate-800 dark:text-slate-200"
+                    }">${todo.text}</span>
+                </div>
+                <button data-date-key="${dateKey}" data-todo-index="${index}" class="delete-todo-btn text-slate-400 hover:text-red-500 text-xs px-2 py-1 rounded-full">&times;</button>
+            `;
+          return todoEl;
+        }
+
+        function createAchievementElement(ach, index) {
+          const card = document.createElement("div");
+          card.className =
+            "relative group bg-white dark:bg-slate-800 rounded-xl shadow-sm overflow-hidden";
+          card.innerHTML = `
+                <img src="${ach.image}" alt="${ach.title}" class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
+                <div class="absolute bottom-0 left-0 p-4">
+                    <h4 class="text-white font-bold">${ach.title}</h4>
+                </div>
+                <button data-achievement-index="${index}" class="delete-achievement-btn absolute top-2 right-2 bg-black/50 text-white w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">&times;</button>
+            `;
+          return card;
+        }
+
+        // --- HELPERS ---
+        function getLevelInfo(xp) {
+          let currentLevelInfo = LEVEL_MILESTONES[0];
+          for (let i = LEVEL_MILESTONES.length - 1; i >= 0; i--) {
+            if (xp >= LEVEL_MILESTONES[i].xp) {
+              currentLevelInfo = LEVEL_MILESTONES[i];
+              break;
+            }
+          }
+          const nextLevelInfo =
+            LEVEL_MILESTONES.find(
+              (l) => l.level === currentLevelInfo.level + 1
+            ) || null;
+          return { currentLevelInfo, nextLevelInfo };
+        }
+
+        function getRandomColor() {
+          const letters = "0123456789ABCDEF";
+          let color = "#";
+          for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+          }
+          return color;
+        }
+
+        const toggleModal = (modal, show) => {
+          const content = modal.querySelector(".transform, .p-6, .bg-white");
+          modal.classList.toggle("opacity-0", !show);
+          modal.classList.toggle("pointer-events-none", !show);
+          if (content) {
+            modal.classList.toggle("modal-fade-in", show);
+            content.classList.toggle("modal-scale-in", show);
+          }
+        };
+
+        function showConfirmModal(title, message, onConfirm) {
+          confirmModal.title.textContent = title;
+          confirmModal.message.textContent = message;
+          toggleModal(confirmModal.element, true);
+          const newOkBtn = confirmModal.okBtn.cloneNode(true);
+          confirmModal.okBtn.parentNode.replaceChild(
+            newOkBtn,
+            confirmModal.okBtn
+          );
+          confirmModal.okBtn = newOkBtn;
+          confirmModal.okBtn.onclick = () => {
+            onConfirm();
+            toggleModal(confirmModal.element, false);
+          };
+        }
+
+        // --- TIMER LOGIC ---
+        function updateTimerDisplay() {
+          const minutes = Math.floor(timerRemainingSeconds / 60);
+          const seconds = timerRemainingSeconds % 60;
+          timer.display.textContent = `${String(minutes).padStart(
+            2,
+            "0"
+          )}:${String(seconds).padStart(2, "0")}`;
+        }
+
+        function updateProgressCircle() {
+          const progress = timerRemainingSeconds / timerTotalSeconds;
+          const dashoffset = CIRCLE_CIRCUMFERENCE * (1 - progress);
+          timer.progressCircle.style.strokeDashoffset = dashoffset;
+        }
+
+        function startTimer() {
+          if (timerIsRunning) return;
+          timerIsRunning = true;
+          timer.controlBtn.textContent = "Pause";
+          timerInterval = setInterval(() => {
+            timerRemainingSeconds--;
+            updateTimerDisplay();
+            updateProgressCircle();
+            if (timerRemainingSeconds <= 0) {
+              clearInterval(timerInterval);
+              timerIsRunning = false;
+              timer.controlBtn.textContent = "Start";
+              // Optional: Add a sound or notification here
+              alert("Time's up!");
+              resetTimer();
+            }
+          }, 1000);
+        }
+
+        function pauseTimer() {
+          if (!timerIsRunning) return;
+          timerIsRunning = false;
+          timer.controlBtn.textContent = "Start";
+          clearInterval(timerInterval);
+        }
+
+        function resetTimer() {
+          pauseTimer();
+          timerRemainingSeconds = timerTotalSeconds;
+          updateTimerDisplay();
+          updateProgressCircle();
+        }
+
+        function adjustTimer(amount) {
+          if (timerIsRunning) return;
+          timerTotalSeconds += amount;
+          if (timerTotalSeconds < 60) timerTotalSeconds = 60; // Minimum 1 minute
+          if (timerTotalSeconds > 3600) timerTotalSeconds = 3600; // Maximum 60 minutes
+          resetTimer();
+        }
+
+        // --- EVENT HANDLERS ---
+        function handleNavClick(e) {
+          e.preventDefault();
+          const link = e.target.closest("a");
+          if (!link) return;
+          const viewName = link.dataset.view;
+          sidebar.navLinks.forEach((l) =>
+            l.classList.remove("sidebar-icon-active")
+          );
+          link.classList.add("sidebar-icon-active");
+          views.containers.forEach((c) => c.classList.add("hidden"));
+          $(`#view-${viewName}`).classList.remove("hidden");
+
+          sidebar.rightSidebar.classList.toggle(
+            "hidden",
+            viewName !== "dashboard"
+          );
+
+          if (viewName === "dashboard") {
+            sidebar.headerTitle.textContent = "Dashboard";
+            sidebar.headerSubtitle.textContent = "Welcome back, Adventurer!";
+            sidebar.mainActionBtn.textContent = "Start a New Quest";
+            sidebar.mainActionBtn.style.display = "block";
+          } else if (viewName === "achievements") {
+            sidebar.headerTitle.textContent = "Achievements";
+            sidebar.headerSubtitle.textContent =
+              "Your collection of badges and certificates.";
+            sidebar.mainActionBtn.textContent = "Upload Achievement";
+            sidebar.mainActionBtn.style.display = "block";
+          } else if (viewName === "analytics") {
+            sidebar.headerTitle.textContent = "Analytics";
+            sidebar.headerSubtitle.textContent =
+              "An overview of your learning journey.";
+            sidebar.mainActionBtn.style.display = "none"; // Hide button on analytics tab
+            renderAllAnalytics();
+          }
+        }
+
+        function handleMainActionClick() {
+          const currentView = $(".sidebar-icon-active").dataset.view;
+          if (currentView === "dashboard") {
+            toggleModal(newQuestModal.element, true);
+          } else if (currentView === "achievements") {
+            achievements.fileInput.click();
+          }
+        }
+
+        function handleFileSelect(event) {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              tempAchievementFile = e.target.result;
+              achievements.titleInput.value = file.name
+                .split(".")
+                .slice(0, -1)
+                .join(".");
+              toggleModal(achievements.modal, true);
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+        function handleSaveAchievement() {
+          const title = achievements.titleInput.value.trim();
+          if (title && tempAchievementFile) {
+            state.achievements.unshift({ title, image: tempAchievementFile });
+            tempAchievementFile = null;
+            achievements.titleInput.value = "";
+            toggleModal(achievements.modal, false);
+            updateAll();
+          }
+        }
+        function handleDeleteAchievement(e) {
+          if (!e.target.matches(".delete-achievement-btn")) return;
+          const index = parseInt(e.target.dataset.achievementIndex);
+          showConfirmModal(
+            "Delete Achievement?",
+            "This action cannot be undone.",
+            () => {
+              state.achievements.splice(index, 1);
+              updateAll();
+            }
+          );
+        }
+        function handleTaskToggle(e) {
+          if (!e.target.matches(".task-checkbox")) return;
+          const questIndex = parseInt(e.target.dataset.questIndex);
+          const taskIndex = parseInt(e.target.dataset.taskIndex);
+          const quest = state.quests[questIndex];
+          const task = quest.tasks[taskIndex];
+          const wasCompleted = task.completed;
+          task.completed = e.target.checked;
+
+          if (task.completed && !wasCompleted) {
+            state.xp += XP_PER_TASK;
+          } else if (!task.completed && wasCompleted) {
+            state.xp -= XP_PER_TASK;
+          }
+          updateAll();
+        }
+        function handleDeleteQuest(e) {
+          if (!e.target.matches(".delete-quest-btn")) return;
+          const index = parseInt(e.target.dataset.questIndex);
+          showConfirmModal(
+            "Abandon Quest?",
+            "Are you sure you want to delete this quest?",
+            () => {
+              state.quests.splice(index, 1);
+              updateAll();
+            }
+          );
+        }
+        function handleNewTodo(e) {
+          e.preventDefault();
+          const text = schedule.newTodoInput.value.trim();
+          if (text) {
+            const dateKey = toISODateString(selectedDate);
+            if (!state.todos[dateKey]) state.todos[dateKey] = [];
+            state.todos[dateKey].push({ text, completed: false });
+            schedule.newTodoInput.value = "";
+            updateAll();
+          }
+        }
+        function handleTodoActions(e) {
+          const dateKey = e.target.dataset.dateKey;
+          const index = parseInt(e.target.dataset.todoIndex);
+          if (e.target.matches(".todo-checkbox")) {
+            state.todos[dateKey][index].completed = e.target.checked;
+          } else if (e.target.matches(".delete-todo-btn")) {
+            state.todos[dateKey].splice(index, 1);
+          }
+          updateAll();
+        }
+
+        const handleNewQuestSubmit = (e) => {
+          e.preventDefault();
+          const name = $("#quest-name").value.trim();
+          const techInput = $("#quest-tech").value.trim();
+          const tasksText = $("#quest-tasks").value.trim();
+          if (name && techInput && tasksText) {
+            const newSkills = techInput
+              .split(",")
+              .map((s) => s.trim().toLowerCase())
+              .filter(Boolean);
+            newSkills.forEach((skill) => {
+              if (!state.allSkills) state.allSkills = [];
+              if (!state.allSkills.includes(skill)) {
+                state.allSkills.push(skill);
+              }
+            });
+            updateTechDatalist();
+
+            const tasks = tasksText
+              .split("\n")
+              .map((t) => ({ text: t.trim(), completed: false }))
+              .filter((t) => t.text);
+            if (tasks.length > 0) {
+              state.quests.unshift({ name, tech: techInput, tasks });
+              updateAll();
+              toggleModal(newQuestModal.element, false);
+              newQuestModal.form.reset();
+            }
+          }
+        };
+
+        function updateTechDatalist() {
+          const datalist = $("#tech-list");
+          datalist.innerHTML = "";
+          const uniqueSkills = [...new Set(state.allSkills)];
+          uniqueSkills.forEach((skill) => {
+            const option = document.createElement("option");
+            option.value = skill;
+            datalist.appendChild(option);
+          });
+        }
+
+        // --- INITIALIZATION & EVENT LISTENERS ---
+        loadData();
+
+        // Timer setup
+        timer.progressCircle.style.strokeDasharray = CIRCLE_CIRCUMFERENCE;
+        resetTimer();
+
+        // Initial render
+        updateAll();
+        renderRandomQuote();
+        updateTechDatalist();
+
+        sidebar.nav.addEventListener("click", handleNavClick);
+        sidebar.mainActionBtn.addEventListener("click", handleMainActionClick);
+        newQuestModal.cancelBtn.addEventListener("click", () =>
+          toggleModal(newQuestModal.element, false)
+        );
+        newQuestModal.form.addEventListener("submit", handleNewQuestSubmit);
+        confirmModal.cancelBtn.addEventListener("click", () =>
+          toggleModal(confirmModal.element, false)
+        );
+        document.querySelector("main").addEventListener("click", (e) => {
+          handleTaskToggle(e);
+          handleDeleteQuest(e);
+          handleDeleteAchievement(e);
+        });
+
+        // Calendar listeners
+        calendar.prevBtn.addEventListener("click", () => {
+          currentDate.setMonth(currentDate.getMonth() - 1);
+          renderCalendar();
+        });
+        calendar.nextBtn.addEventListener("click", () => {
+          currentDate.setMonth(currentDate.getMonth() + 1);
+          renderCalendar();
+        });
+        calendar.daysGrid.addEventListener("click", (e) => {
+          if (e.target.matches(".calendar-day") && e.target.dataset.date) {
+            selectedDate = new Date(e.target.dataset.date + "T00:00:00");
+            renderCalendar();
+            renderTodos();
+          }
+        });
+
+        // Schedule Listeners
+        schedule.newTodoForm.addEventListener("submit", handleNewTodo);
+        schedule.todoList.addEventListener("click", handleTodoActions);
+
+        // Achievement Listeners
+        achievements.fileInput.addEventListener("change", handleFileSelect);
+        achievements.cancelBtn.addEventListener("click", () =>
+          toggleModal(achievements.modal, false)
+        );
+        achievements.saveBtn.addEventListener("click", handleSaveAchievement);
+
+        // Timer Listeners
+        timer.controlBtn.addEventListener("click", () => {
+          if (timerIsRunning) {
+            pauseTimer();
+          } else {
+            startTimer();
+          }
+        });
+        timer.plusBtn.addEventListener("click", () => adjustTimer(60));
+        timer.minusBtn.addEventListener("click", () => adjustTimer(-60));
+      });
+    </script>
+  </body>
+</html>
