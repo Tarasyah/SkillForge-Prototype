@@ -40,9 +40,3 @@ This is a pure front-end project and requires no special installation.
     ```
 3.  **Open the `index.html` file:**
     Simply open the `index.html` file in your favorite web browser (like Chrome, Firefox, or Edge) to run the application.
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
