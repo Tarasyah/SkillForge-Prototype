@@ -1158,36 +1158,53 @@
           }
         }
 
-        function renderSkillGraph() {
-          const container = analyticsCharts.skillGraph.container;
-          const {
-            input: skillInput,
-            addBtn: addSkillButton,
-            subSkillModal: modal,
-            parentSkillNameSpan,
-            subSkillInput,
-            addSubSkillBtn: addSubSkillButton,
-            cancelSubSkillBtn: cancelSubSkillButton,
-          } = analyticsCharts.skillGraph;
+        
+       function renderSkillGraph() {
+  // The link-fixing code from the first fix stays here.
+  if (state.skillGraphData && state.skillGraphData.links) {
+    state.skillGraphData.links.forEach((link) => {
+      if (typeof link.source === "object" && link.source !== null) {
+        link.source = link.source.id;
+      }
+      if (typeof link.target === "object" && link.target !== null) {
+        link.target = link.target.id;
+      }
+    });
+  }
 
-          container.innerHTML = "";
+  const container = analyticsCharts.skillGraph.container;
+  const {
+    input: skillInput,
+    addBtn: addSkillButton,
+    subSkillModal: modal,
+    parentSkillNameSpan,
+    subSkillInput,
+    addSubSkillBtn: addSubSkillButton,
+    cancelSubSkillBtn: cancelSubSkillButton,
+  } = analyticsCharts.skillGraph;
 
-          const width = container.clientWidth;
-          const height = container.clientHeight;
-          const svg = d3
-            .select(container)
-            .append("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("viewBox", [-width / 2, -height / 2, width, height]);
+  container.innerHTML = "";
 
-          let nodes = state.skillGraphData.nodes;
-          let links = state.skillGraphData.links;
-          let selectedNode = null;
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  const svg = d3
+    .select(container)
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [-width / 2, -height / 2, width, height]);
 
-          if (nodes.length === 0) {
-            nodes.push({ id: "You", group: 1, radius: 25 });
-          }
+  let nodes = state.skillGraphData.nodes;
+  let links = state.skillGraphData.links;
+  let selectedNode = null;
+
+  // 👇 THIS IS THE BLOCK TO MODIFY 👇
+  if (nodes.length === 0) {
+    nodes.push({ id: "You", group: 1, radius: 25 });
+    saveData(); // <-- ADD THIS LINE HERE
+  }
+
+  // ... the rest of your function remains the same
 
           const simulation = d3
             .forceSimulation()
